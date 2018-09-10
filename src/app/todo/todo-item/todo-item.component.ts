@@ -1,10 +1,9 @@
-import { actions } from './../../../../../02-redux-app/src/app/contador/contador.actions';
-import { AppState } from './../../app.reducer';
-import { FormControl, Validators } from '@angular/forms';
 import { Component, OnInit, Input, ViewChild, ElementRef } from '@angular/core';
 import { Todo } from '../model/todo.model';
+import { FormControl, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { ToggleTodoAcction, EditarTodoAcction, BorrarTodoAcction } from '../todo.actions';
+import { AppState } from '../../app.reducers';
+import { ToggleTodoAction, EditarTodoAccion, BorrarTodoAction } from '../todo.actions';
 
 @Component({
   selector: 'app-todo-item',
@@ -12,46 +11,57 @@ import { ToggleTodoAcction, EditarTodoAcction, BorrarTodoAcction } from '../todo
   styles: []
 })
 export class TodoItemComponent implements OnInit {
-  @Input() todo:Todo;
+
+  @Input() todo: Todo;
+  @ViewChild('txtInputFisico') txtInputFisico: ElementRef;
+
   chkField: FormControl;
   txtInput: FormControl;
-  editando:boolean;
-  @ViewChild ('txtInputFisico') txtInputFisico:ElementRef;
-  constructor(private _store:Store<AppState>) { }
+
+  editando: boolean;
+
+  constructor(private store: Store<AppState>) { }
 
   ngOnInit() {
-    this.chkField = new FormControl(this.todo.completado);
-    this.txtInput = new FormControl(this.todo.texto, Validators.required);
-    this.chkField.valueChanges.subscribe(() => {
-      const accion = new ToggleTodoAcction(this.todo.id);
-      this._store.dispatch(accion);
-    });
+
+    this.chkField = new FormControl( this.todo.completado );
+    this.txtInput = new FormControl( this.todo.texto, Validators.required );
+
+    this.chkField.valueChanges
+        .subscribe( () => {
+          const accion = new ToggleTodoAction( this.todo.id );
+          this.store.dispatch( accion );
+        });
   }
 
   editar() {
     this.editando = true;
-    setTimeout(() => {
+
+    setTimeout( () => {
       this.txtInputFisico.nativeElement.select();
     }, 1);
   }
 
   terminarEdicion() {
     this.editando = false;
-    if(this.txtInput.invalid) {
+
+    if ( this.txtInput.invalid ) {
       return;
     }
 
-    if(this.txtInput.value == this.todo.texto) {
+    if ( this.txtInput.value === this.todo.texto ) {
       return;
     }
 
-    const accion = new EditarTodoAcction(this.todo.id, this.txtInput.value);
-    this._store.dispatch(accion);
+    const accion = new EditarTodoAccion(this.todo.id, this.txtInput.value );
+    this.store.dispatch( accion );
+
   }
 
   borrarTodo() {
-    const accion = new BorrarTodoAcction(this.todo.id);
-    this._store.dispatch(accion);
+
+    const accion = new BorrarTodoAction( this.todo.id );
+    this.store.dispatch( accion );
   }
 
 }
